@@ -27,20 +27,31 @@ export default function Hoteles() {
   function Submit2(e: any) {
     e.preventDefault();
   
+    // Crear una copia de habitacionesCopy
+    let newHabitacionesCopy = [...habitacionesCopy];
+  
     // Recorrer selectedRooms
     for (let i = 0; i < selectedRooms.length; i++) {
-      // Encontrar la habitación en habitacionesCopy que coincide con el número de habitación en selectedRooms
-      let roomIndex = habitacionesCopy.findIndex(room => room.num === selectedRooms[i]);
+      // Encontrar la habitación en newHabitacionesCopy que coincide con el número de habitación en selectedRooms
+      let roomIndex = newHabitacionesCopy.findIndex(room => room.num === selectedRooms[i]);
   
       if (roomIndex !== -1) {
-        // Actualizar la habitación en habitacionesCopy a "Ocupado"
-        dispatch(setHabitaciones({ num: selectedRooms[i], state: "Ocupada" }));
+        // Crear una copia de la habitación
+        let roomCopy = { ...newHabitacionesCopy[roomIndex] };
+  
+        // Cambiar el estado de la habitación copiada a "Ocupada" si está "Libre" y viceversa
+        roomCopy.state = roomCopy.state === "Ocupada" ? "Libre" : "Ocupada";
+  
+        // Reemplazar la habitación en newHabitacionesCopy con la habitación copiada
+        newHabitacionesCopy[roomIndex] = roomCopy;
       }
     }
+  
+    // Hacer un solo dispatch con la nueva lista de habitaciones
+    dispatch(setHabitaciones(newHabitacionesCopy));
   }
   
-
-
+  
   return (
     <form style={{ display: 'flex', justifyContent: 'center', alignItems: 'center'}} onSubmit={Submit2}>
       <Global styles={{ body: { background: "grey" } }} />

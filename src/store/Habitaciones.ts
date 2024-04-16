@@ -1,11 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
-
-interface ChangeRoom{
-    payload: {
-        num: number,
-        state: "Libre" | "Ocupada"
-    }
-}
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export interface HabitacionSingle{
     num: number,
@@ -38,24 +31,13 @@ const HabitacionesSlice = createSlice({
     name: 'Habitaciones',
     initialState:initialState,
     reducers: {
-        setHabitaciones: (state, action: ChangeRoom) => {
-            // Hacemos una copia del array de habitacionesCopy
-            let copyArray = [...state.habitacionesCopy];
-            
-            // Buscamos el índice de la habitación a actualizar
-            let indexToUpdate = copyArray.findIndex(habitacion => habitacion.num === action.payload.num);
-            
-            // Si encontramos la habitación, la actualizamos
-            if (indexToUpdate !== -1) {
-                copyArray[indexToUpdate] = { ...copyArray[indexToUpdate], state: action.payload.state };
-            }
-            
-            // Almacenamos la copia en el estado
-            state.habitacionesCopy = copyArray;
+        setHabitaciones: (state, action: PayloadAction<HabitacionSingle[]>) => {
+            // Actualizamos todo el estado de habitacionesCopy con la nueva lista de habitaciones
+            state.habitacionesCopy = action.payload;
         }
     }
 })
 
-export const { setHabitaciones, cancelarReserva } = HabitacionesSlice.actions
+export const { setHabitaciones } = HabitacionesSlice.actions
 
 export default HabitacionesSlice.reducer;

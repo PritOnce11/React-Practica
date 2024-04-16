@@ -7,7 +7,7 @@ import { Global } from "@emotion/react";
 
 export default function Hoteles() {
   const dispatch = useDispatch();
-  const { habitaciones, habitacionesCopy } = useSelector((state: RootState) => state.Habitaciones);
+  const { habitacionesCopy } = useSelector((state: RootState) => state.Habitaciones);
 
   // Estado local para almacenar los números de las habitaciones seleccionadas
   const [selectedRooms, setSelectedRooms] = useState<number[]>([]);

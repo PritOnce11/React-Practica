@@ -13,7 +13,8 @@ export interface HabitacionSingle{
 }
 
 interface HabitacionesType {
-    habitaciones: HabitacionSingle[]
+    habitaciones: HabitacionSingle[],
+    habitacionesCopy: HabitacionSingle[]
 }
 
 const initialHabitaciones: HabitacionSingle[] = [
@@ -30,21 +31,31 @@ const initialHabitaciones: HabitacionSingle[] = [
 ]
 
 const initialState: HabitacionesType= {
-    habitaciones: initialHabitaciones
+    habitaciones: initialHabitaciones,
+    habitacionesCopy: [...initialHabitaciones]
 }
 const HabitacionesSlice = createSlice({
     name: 'Habitaciones',
     initialState:initialState,
     reducers: {
         setHabitaciones: (state, action: ChangeRoom) => {
-            const habitacionToUpdate = state.habitaciones.find(habitacion => habitacion.num === action.payload.num);
-            if (habitacionToUpdate != undefined) {
-                let copyArray = [...state.habitaciones];
-                
+            // Hacemos una copia del array de habitacionesCopy
+            let copyArray = [...state.habitacionesCopy];
+            
+            // Buscamos el índice de la habitación a actualizar
+            let indexToUpdate = copyArray.findIndex(habitacion => habitacion.num === action.payload.num);
+            
+            // Si encontramos la habitación, la actualizamos
+            if (indexToUpdate !== -1) {
+                copyArray[indexToUpdate] = { ...copyArray[indexToUpdate], state: action.payload.state };
             }
+            
+            // Almacenamos la copia en el estado
+            state.habitacionesCopy = copyArray;
         }
     }
 })
 
-export const { setHabitaciones } = HabitacionesSlice.actions
+export const { setHabitaciones, cancelarReserva } = HabitacionesSlice.actions
+
 export default HabitacionesSlice.reducer;

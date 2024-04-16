@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { HabitacionSingle, setHabitaciones, cancelarReserva } from "../../store/Habitaciones";
@@ -11,6 +11,9 @@ export default function Hoteles() {
 
   // Estado local para almacenar los números de las habitaciones seleccionadas
   const [selectedRooms, setSelectedRooms] = useState<number[]>([]);
+  
+  // Estado local para almacenar el estado anterior de habitacionesCopy
+  const [prevHabitacionesCopy, setPrevHabitacionesCopy] = useState(habitacionesCopy);
 
   function handleCheckboxChange(e: any, roomNumber: number) {
     if (e.target.checked) {
@@ -20,40 +23,52 @@ export default function Hoteles() {
     }
   }
 
+  let changedRooms = useMemo(() => {
+    return habitacionesCopy.filter((newRoom, index) => {
+      let prevRoom = prevHabitacionesCopy[index];
+      return prevRoom.state !== newRoom.state;
+    });
+  }, [habitacionesCopy, prevHabitacionesCopy]);
+
   useEffect(() => {
-    console.log(habitaciones, habitacionesCopy);
-  }, [habitaciones, habitacionesCopy])
-  
+    setPrevHabitacionesCopy(habitacionesCopy);
+
+    // Imprime las habitaciones que han cambiado
+    console.log(changedRooms);
+
+    // Imprime los estados original y nuevo para verificar
+    console.log(prevHabitacionesCopy, habitacionesCopy);
+  }, [habitacionesCopy]) // Se ejecuta cada vez que changedRooms, prevHabitacionesCopy o habitacionesCopy cambian
+
   function Submit2(e: any) {
     e.preventDefault();
-  
+
     // Crear una copia de habitacionesCopy
     let newHabitacionesCopy = [...habitacionesCopy];
-  
+
     // Recorrer selectedRooms
     for (let i = 0; i < selectedRooms.length; i++) {
       // Encontrar la habitación en newHabitacionesCopy que coincide con el número de habitación en selectedRooms
       let roomIndex = newHabitacionesCopy.findIndex(room => room.num === selectedRooms[i]);
-  
+
       if (roomIndex !== -1) {
         // Crear una copia de la habitación
         let roomCopy = { ...newHabitacionesCopy[roomIndex] };
-  
+
         // Cambiar el estado de la habitación copiada a "Ocupada" si está "Libre" y viceversa
         roomCopy.state = roomCopy.state === "Ocupada" ? "Libre" : "Ocupada";
-  
+
         // Reemplazar la habitación en newHabitacionesCopy con la habitación copiada
         newHabitacionesCopy[roomIndex] = roomCopy;
       }
     }
-  
+
     // Hacer un solo dispatch con la nueva lista de habitaciones
     dispatch(setHabitaciones(newHabitacionesCopy));
   }
-  
-  
+
   return (
-    <form style={{ display: 'flex', justifyContent: 'center', alignItems: 'center'}} onSubmit={Submit2}>
+    <form style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} onSubmit={Submit2}>
       <Global styles={{ body: { background: "grey" } }} />
       <div style={{ display: 'grid', justifyContent: 'center', alignItems: 'center', border: '3px solid black', borderRadius: '10px', width: '300px' }}>
         {habitacionesCopy.map((habitacion: HabitacionSingle) => (
@@ -65,7 +80,7 @@ export default function Hoteles() {
           </div>
         ))}
         <div style={{ display: 'flex', justifyContent: 'space-between', width: '100px', margin: '20px auto' }}>
-          <input style={{marginLeft: '15px'}} type="submit" value="Submit" />
+          <input style={{ marginLeft: '15px' }} type="submit" value="Submit" />
         </div>
       </div>
     </form>

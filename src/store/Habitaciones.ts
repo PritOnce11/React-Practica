@@ -6,8 +6,7 @@ export interface HabitacionSingle{
 }
 
 interface HabitacionesType {
-    habitaciones: HabitacionSingle[],
-    habitacionesCopy: HabitacionSingle[]
+    habitaciones: HabitacionSingle[]
 }
 
 const initialHabitaciones: HabitacionSingle[] = [
@@ -24,19 +23,25 @@ const initialHabitaciones: HabitacionSingle[] = [
 ]
 
 const initialState: HabitacionesType= {
-    habitaciones: initialHabitaciones,
-    habitacionesCopy: [...initialHabitaciones]
+    habitaciones: initialHabitaciones
 }
+// En tu slice de Redux
 const HabitacionesSlice = createSlice({
     name: 'Habitaciones',
     initialState:initialState,
     reducers: {
         setHabitaciones: (state, action: PayloadAction<HabitacionSingle[]>) => {
-            // Actualizamos todo el estado de habitacionesCopy con la nueva lista de habitaciones
-            state.habitacionesCopy = action.payload;
+            // Cambia el estado de todas las habitaciones en la lista
+            action.payload.forEach(habitacionNum => {
+                const habitacion = state.habitaciones.find(h => h.num === habitacionNum.num);
+                if (habitacion) {
+                    habitacion.state = habitacionNum.state;
+                }
+            });
         }
     }
 })
+
 
 export const { setHabitaciones } = HabitacionesSlice.actions
 

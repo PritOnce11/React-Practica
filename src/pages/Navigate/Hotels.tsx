@@ -1,88 +1,75 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect} from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useFormik } from "formik";
+import { Form } from "semantic-ui-react";
 
-import { HabitacionSingle, setHabitaciones, cancelarReserva } from "../../store/Habitaciones";
+import { HabitacionSingle, setHabitaciones } from "../../store/Habitaciones";
 import { RootState } from "../../store/store";
 import { Global } from "@emotion/react";
 
 export default function Hoteles() {
+
+
   const dispatch = useDispatch();
-  const { habitacionesCopy } = useSelector((state: RootState) => state.Habitaciones);
-
-  // Estado local para almacenar los números de las habitaciones seleccionadas
-  const [selectedRooms, setSelectedRooms] = useState<number[]>([]);
-  
-  // Estado local para almacenar el estado anterior de habitacionesCopy
-  const [prevHabitacionesCopy, setPrevHabitacionesCopy] = useState(habitacionesCopy);
-
-  function handleCheckboxChange(e: any, roomNumber: number) {
-    if (e.target.checked) {
-      setSelectedRooms(prevRooms => [...prevRooms, roomNumber]);
-    } else {
-      setSelectedRooms(prevRooms => prevRooms.filter(num => num !== roomNumber));
-    }
-  }
-
-  let changedRooms = useMemo(() => {
-    return habitacionesCopy.filter((newRoom, index) => {
-      let prevRoom = prevHabitacionesCopy[index];
-      return prevRoom.state !== newRoom.state;
-    });
-  }, [habitacionesCopy, prevHabitacionesCopy]);
+  const { habitaciones } = useSelector((state: RootState) => state.Habitaciones);
 
   useEffect(() => {
-    setPrevHabitacionesCopy(habitacionesCopy);
+    console.log("useEffect:", habitaciones);
+  }, [habitaciones]);
 
-    // Imprime las habitaciones que han cambiado
-    console.log(changedRooms);
+  const formik = useFormik({
+    initialValues: {
+      habitaciones: habitaciones.reduce((values: { [key: number]: boolean }, habitacion) => {
+        values[habitacion.num] = false;
+        return values;
+      }, {} as { [key: number]: boolean }),
+    },
+    onSubmit: (rauw) => {
+      console.log(rauw);
 
-    // Imprime los estados original y nuevo para verificar
-    console.log(prevHabitacionesCopy, habitacionesCopy);
-  }, [habitacionesCopy]) // Se ejecuta cada vez que changedRooms, prevHabitacionesCopy o habitacionesCopy cambian
+      const temporal: HabitacionSingle[] = [];
 
-  function Submit2(e: any) {
-    e.preventDefault();
+      Object.entries(rauw.habitaciones).forEach(([key, value]) => {
+        const oldState = habitaciones.find(h => h.num === parseInt(key));
+        if (oldState) {
+          temporal.push({ num: parseInt(key), state: value ? oldState.state === "Libre" ? "Ocupada" : "Libre" : oldState.state });
+        }
+      })
+      console.log("TEMPORAL:", temporal);
+      dispatch(setHabitaciones(temporal));
 
-    // Crear una copia de habitacionesCopy
-    let newHabitacionesCopy = [...habitacionesCopy];
-
-    // Recorrer selectedRooms
-    for (let i = 0; i < selectedRooms.length; i++) {
-      // Encontrar la habitación en newHabitacionesCopy que coincide con el número de habitación en selectedRooms
-      let roomIndex = newHabitacionesCopy.findIndex(room => room.num === selectedRooms[i]);
-
-      if (roomIndex !== -1) {
-        // Crear una copia de la habitación
-        let roomCopy = { ...newHabitacionesCopy[roomIndex] };
-
-        // Cambiar el estado de la habitación copiada a "Ocupada" si está "Libre" y viceversa
-        roomCopy.state = roomCopy.state === "Ocupada" ? "Libre" : "Ocupada";
-
-        // Reemplazar la habitación en newHabitacionesCopy con la habitación copiada
-        newHabitacionesCopy[roomIndex] = roomCopy;
-      }
-    }
-
-    // Hacer un solo dispatch con la nueva lista de habitaciones
-    dispatch(setHabitaciones(newHabitacionesCopy));
-  }
+    },
+  });
 
   return (
-    <form style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} onSubmit={Submit2}>
-      <Global styles={{ body: { background: "grey" } }} />
-      <div style={{ display: 'grid', justifyContent: 'center', alignItems: 'center', border: '3px solid black', borderRadius: '10px', width: '300px' }}>
-        {habitacionesCopy.map((habitacion: HabitacionSingle) => (
-          <div key={habitacion.num} style={{ marginBottom: '10px' }}>
-            <label style={{ color: 'black' }}>
-              <input type="checkbox" onChange={(e) => handleCheckboxChange(e, habitacion.num)} />
-              Habitación {habitacion.num} | {habitacion.state}
-            </label>
-          </div>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: "30vw",
+        height: "50vh",
+        border: "3px solid black",
+        marginLeft: "500px",
+      }}
+    >
+      <Global styles={{ body: { background: "yellow" } }} />
+
+      <Form onSubmit={formik.handleSubmit}>
+        {habitaciones.map((habitacion: HabitacionSingle) => (
+          <Form.Checkbox
+            key={habitacion.num}
+            name={`habitaciones.${habitacion.num}`}
+            label={`Habitación ${habitacion.num} | ${habitacion.state}`}
+            onChange={formik.handleChange}
+            checked={formik.values.habitaciones[habitacion.num]}
+          />
         ))}
-        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100px', margin: '20px auto' }}>
-          <input style={{ marginLeft: '15px' }} type="submit" value="Submit" />
-        </div>
-      </div>
-    </form>
+
+        <Form.Button type="submit" style={{ marginTop: "20px", marginLeft: "40px" }}>
+          Submit
+        </Form.Button>
+      </Form>
+    </div>
   );
 }
